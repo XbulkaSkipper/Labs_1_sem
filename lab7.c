@@ -1,43 +1,78 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
+#include <windows.h>
 
-#define MAX_LENGTH 1024
-
-int is_valid_char(char c) {
-    return (isalnum(c));
+int check_num(const char *word)
+{
+    while (*word) {
+        if (!isdigit(*word)) {
+            return 0; // Если хотя бы один символ не является цифрой,вернуть0
+        }
+        word++;
+    }
+    return 1;
 }
 
-int main() {
-    char input[MAX_LENGTH];
-    printf("Введите строку: ");
-    fgets(input, MAX_LENGTH, stdin);
+int main(void) {
+    SetConsoleOutputCP(CP_UTF8);
 
-    char *start = NULL;
-    char *end = NULL;
+    char words[331]; //создаем массив
+    printf("Введите строку:");
+    fgets(words,331,stdin); //записываем в массив строчки
 
-    for (int i = 0; input[i] != '\0'; i++) {
-        if (input[i] == '(') {
-            start = &input[i + 1];
-        } else if (input[i] == ')') {
-            if (start != NULL) {
-                end = &input[i];
-                *end = '\0';
-                for (char *p = start; p != end; p++) {
-                    if (!is_valid_char(*p)) {
-                        start = NULL;
-                        break;
-                    }
-                }
-                if (start != NULL) {
-                    printf("Найдено слово: %s\n", start);
-                }
-                *end = ')';
-                start = NULL;
-            }
+    // нет точки - БАН
+    if(strchr(words,'.') == 0) {
+        printf("ERROR");
+        return 1;
+    }
+
+    // проверка на кол-во слов
+    int k = 0;
+    int count_words = 1;
+    while(words[k+1] != '.') {
+        if(words[k] != ' ' && words[k+1] == ' ') {
+            count_words++;
+        }
+        k++;
+    }
+    if(count_words > 30) {
+        printf("ERROR");
+        return 1;
+    }
+
+
+    // замена точки на конец
+    for (int i = 0; i <= strlen(words); i++) {
+        if (words[i] == '.') {
+            words[i] = '\0';
+            break; // Добавляем break, чтобы прекратить цикл при первой точке
         }
     }
+
+    char *string = strtok(words, " ");
+
+    while(string != NULL) // находим строки из цифр и выводим их
+    {
+        // проверка на кол-во букв в слове
+        if(strlen(string) > 10) {
+            printf("ERROR\n");
+            return 1;
+        }
+        // проверка на посторонние символы
+        if(strpbrk(string,"!@$%^&*()~-*/+?><{}][:;,") != 0) {
+            printf("ERROR\n");
+            return 1;
+        }
+        else {
+            if(check_num(string))  //проверка состоит ли слово из цифр
+            {
+                printf("(%s) ", string); //окружаем слово скобками и выводим его
+            }
+            string = strtok(NULL, " "); //получаем следующее слово
+        }
+    }
+    printf(".\n"); //добавляем точку в конце вывода
+
 
     return 0;
 }
